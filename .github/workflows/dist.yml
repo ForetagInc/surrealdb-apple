@@ -38,13 +38,13 @@ jobs:
       - name: Build distribution artifacts
         run: bash ./generate-dist.sh
 
-      - name: Package ZIP files
+      - name: Package XCFramework zip
         run: |
           rm -rf release
           mkdir -p release
 
           ditto -c -k --sequesterRsrc --keepParent \
-            dist \
+            dist/EmbeddedFFI.xcframework \
             release/embedded-ffi-dist.zip
 
       - name: Upload workflow artifacts
