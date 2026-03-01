@@ -1,3 +1,6 @@
+#include <stddef.h>
+#include <stdint.h>
+
 typedef struct SeBuf {
   uint8_t* ptr;
   size_t len;

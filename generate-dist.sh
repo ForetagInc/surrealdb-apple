@@ -1,3 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
 rm -rf dist
 
 cargo build --release --target aarch64-apple-ios
@@ -8,6 +11,12 @@ mkdir dist
 mkdir dist/headers
 
 cp crates/embedded-ffi/include/embedded_ffi.h dist/headers/
+cat > dist/headers/module.modulemap <<'EOF'
+module EmbeddedFFI {
+  header "embedded_ffi.h"
+  export *
+}
+EOF
 cp target/aarch64-apple-ios-sim/release/libembedded_ffi.a dist/libembedded_ffi_ios_sim.a
 
 lipo -create \
