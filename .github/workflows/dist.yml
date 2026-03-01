@@ -1,0 +1,63 @@
+name: Build Dist
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  dist:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust targets
+        run: |
+          rustup target add \
+            aarch64-apple-ios \
+            aarch64-apple-ios-sim \
+            aarch64-apple-darwin
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Build distribution artifacts
+        run: bash ./generate-dist.sh
+
+      - name: Package ZIP files
+        run: |
+          rm -rf release
+          mkdir -p release
+
+          ditto -c -k --sequesterRsrc --keepParent \
+            dist \
+            release/embedded-ffi-dist.zip
+
+      - name: Upload workflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: embedded-ffi-dist
+          path: release/embedded-ffi-dist.zip
+
+      - name: Create GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            release/embedded-ffi-dist.zip \
+            --generate-notes
