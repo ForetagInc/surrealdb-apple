@@ -1,0 +1,16 @@
+[package]
+name = "fs2"
+version = "0.4.3"
+edition = "2015"
+authors = ["Dan Burkert <dan@danburkert.com>"]
+description = "Cross-platform file locks and file duplication."
+documentation = "https://docs.rs/fs2"
+keywords = ["file", "file-system", "lock", "duplicate", "flock"]
+license = "MIT/Apache-2.0"
+repository = "https://github.com/danburkert/fs2-rs"
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2.30"
+
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "0.3", features = ["handleapi", "processthreadsapi", "winerror", "fileapi", "winbase", "std"] }

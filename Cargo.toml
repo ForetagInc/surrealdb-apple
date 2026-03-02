@@ -4,3 +4,6 @@ members = [
 	'crates/embedded-ffi'
 ]
 default-members = ['crates/embedded-ffi']
+
+[patch.crates-io]
+fs2 = { path = 'vendor/fs2' }
