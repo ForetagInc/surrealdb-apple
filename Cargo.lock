@@ -929,18 +929,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "embedded-core"
-version = "0.1.0"
-dependencies = [
- "surrealdb",
- "tokio",
-]
-
-[[package]]
 name = "embedded-ffi"
 version = "0.1.0"
 dependencies = [
- "embedded-core",
  "libc",
  "once_cell",
  "serde",

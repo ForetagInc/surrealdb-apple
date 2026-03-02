@@ -2,6 +2,8 @@ use libc::{c_char, size_t};
 use once_cell::sync::Lazy;
 use serde::Serialize;
 use std::{ffi::CStr, ptr, sync::Mutex};
+use surrealdb::Surreal;
+use surrealdb::engine::local::{Db, Mem, SurrealKv};
 
 static RT: Lazy<tokio::runtime::Runtime> = Lazy::new(|| {
     tokio::runtime::Builder::new_current_thread()
@@ -12,7 +14,7 @@ static RT: Lazy<tokio::runtime::Runtime> = Lazy::new(|| {
 
 #[repr(C)]
 pub struct Handle {
-    db: Mutex<surrealdb::Surreal<surrealdb::engine::local::Db>>,
+    db: Mutex<Surreal<Db>>,
 }
 
 #[repr(C)]
@@ -29,6 +31,18 @@ struct VersionInfo<'a> {
 }
 
 const ENABLED_BACKENDS: &[&str] = &["mem", "surrealkv"];
+
+async fn open_mem(ns: &str, db: &str) -> surrealdb::Result<Surreal<Db>> {
+    let s = Surreal::new::<Mem>(()).await?;
+    s.use_ns(ns).use_db(db).await?;
+    Ok(s)
+}
+
+async fn open_surrealkv(path: &str, ns: &str, db: &str) -> surrealdb::Result<Surreal<Db>> {
+    let s = Surreal::new::<SurrealKv>(path).await?;
+    s.use_ns(ns).use_db(db).await?;
+    Ok(s)
+}
 
 fn ok_bytes(bytes: Vec<u8>) -> SeBuf {
     let len = bytes.len();
@@ -89,7 +103,7 @@ pub extern "C" fn se_open_mem(ns: *const c_char, db: *const c_char) -> *mut Hand
     };
 
     let res = RT.block_on(async move {
-        let db = surrealdb_embedded::open_mem(&ns, &dbname).await?;
+        let db = open_mem(&ns, &dbname).await?;
         Ok::<_, surrealdb::Error>(Handle { db: Mutex::new(db) })
     });
 
@@ -119,7 +133,7 @@ pub extern "C" fn se_open_surrealkv(
     };
 
     let res = RT.block_on(async move {
-        let db = surrealdb_embedded::open_surrealkv(&path, &ns, &dbname).await?;
+        let db = open_surrealkv(&path, &ns, &dbname).await?;
         Ok::<_, surrealdb::Error>(Handle { db: Mutex::new(db) })
     });
 
