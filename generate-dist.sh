@@ -5,6 +5,7 @@ PACKAGE="embedded-ffi"
 LIB_NAME="libembedded_ffi.a"
 DIST_DIR="dist"
 HEADERS_DIR="$DIST_DIR/headers"
+DIST_TOOLCHAIN="${DIST_TOOLCHAIN:-nightly}"
 
 TARGETS=(
   aarch64-apple-ios
@@ -18,11 +19,14 @@ TARGETS=(
   aarch64-apple-watchos-sim
 )
 
+rustup toolchain install "$DIST_TOOLCHAIN" --profile minimal
+rustup +"$DIST_TOOLCHAIN" target add "${TARGETS[@]}"
+
 rm -rf "$DIST_DIR"
 mkdir -p "$HEADERS_DIR"
 
 for target in "${TARGETS[@]}"; do
-  cargo build --release -p "$PACKAGE" --target "$target"
+  cargo +"$DIST_TOOLCHAIN" build --release -p "$PACKAGE" --target "$target"
 done
 
 cp crates/embedded-ffi/include/embedded_ffi.h "$HEADERS_DIR/"

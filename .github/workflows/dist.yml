@@ -17,18 +17,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Rust targets
-        run: |
-          rustup target add \
-            aarch64-apple-ios \
-            aarch64-apple-ios-sim \
-            aarch64-apple-darwin \
-            aarch64-apple-tvos \
-            aarch64-apple-tvos-sim \
-            aarch64-apple-visionos \
-            aarch64-apple-visionos-sim \
-            aarch64-apple-watchos \
-            aarch64-apple-watchos-sim
+      - name: Install nightly toolchain
+        run: rustup toolchain install nightly --profile minimal
 
       - name: Cache cargo
         uses: actions/cache@v4
@@ -37,9 +27,9 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-nightly-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-cargo-
+            ${{ runner.os }}-cargo-nightly-
 
       - name: Build distribution artifacts
         run: bash ./generate-dist.sh
